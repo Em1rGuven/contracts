@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "github.com/Em1rGuven/contracts/crypto-game/v1;market";
+
+message CoinRequest {
+    string name = 1;
+}
+message CoinResponse {
+    double  price = 1;
+}
+
+service CoinService {
+    rpc GetCoinPrice(CoinRequest) returns (CoinResponse);
+    rpc StreamCoinPrice(CoinRequest) returns (stream CoinResponse);
+}
