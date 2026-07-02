@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "github.com/Em1rGuven/contracts/mini-chat/v1;chat";
+
+message Message {
+    string username = 1;
+    string room = 2;
+    Text   text = 3;
+}
+
+message Text {
+    string content = 1;
+    int64 timestamp = 2;
+}
+
+service ChatService {
+    rpc Chat(stream Message) returns (stream Message);
+}
