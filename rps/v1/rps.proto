@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+message LobbyAction {
+    string username = 1;
+}
+
+enum Choice {
+    NONE = 0;
+    ROCK = 1;
+    PAPER = 2;
+    SCISSORS = 3;
+}
+
+message GameRequest {
+    oneof payload {
+        LobbyAction lobby = 1;
+        Choice choice = 2;
+    }
+}
+
+service RPS {
+    rpc Game(stream GameRequest) returns (stream GameResponse); 
+}
+
+message LobbyWaitAction { // Lobide beklerken ekranda görüntülemelik
+    int32 elo = 1;
+    int32 eloDiff = 2; // Eşleşilebilecek oyuncular ile maksimum elo farkı
+}
+
+enum RoundResultType { // Tur MEVCUT client için nasıl bitti?
+    DRAW = 0;
+    WIN = 1;
+    LOSE = 2;
+}
+
+message RoundResult { // Bir turun sonucu
+    RoundResultType res = 1;
+    Choice playerChoice = 2;
+    Choice enemyChoice = 3;
+    int32 myScore = 4;
+    int32 enemyScore = 5;
+}
+
+message Enemy { // Ekranda göstermek için rakip bilgileri (bir kez göndermek yeterli)
+    string username = 1;
+    int32 elo = 2;
+}
+
+message GameOver {
+    RoundResultType res = 1; // Client'a WIN gidiyorsa o Client KAZANMIŞTIR
+    int32 updatedElo = 2;
+}
+
+enum GameState { // Son süresi verilen eylemin tipi
+    UNDEFINED = 0;
+    START_GAME = 1; // Rakip bulduktan sonra oyunun başlaması arasındaki süre
+    NEXT_ROUND = 2; // Sonraki tura geçiş
+    CHOICE = 3;     // TKM'dan birini seçme
+}
+
+message NextTarget { // Bir sonraki eylemin BİTİŞ (son) süresi ve eylemin tipi
+    int64 endTime = 1; 
+    GameState action = 2;
+}
+
+message GameResponse {
+    oneof payload {
+        LobbyWaitAction wait = 1;       // Rakip ararken mevcut elo'yu ve aramada kullanılan elo farkı miktarını göster
+        Enemy enemy = 2;                // Odaya iki kişi bağlandıktan sonra sadece bir kez rakibin bilgileri diğer kişiye gider
+        RoundResult round = 3;          // Bir tur sonunda gelen bilgileri döner
+        GameOver over = 4;              // Oyun sonucunu gösterir 
+        NextTarget target = 5;          // Bir sonraki aksiyon kaç saniye sonra olacak
+    }
+}
