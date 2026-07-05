@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+option go_package = "CHANGE_HERE";
+
+enum MatchmakingAction { // Eşleştirme isteğinde giriş mi yapılıyor çıkış mı bilgisi
+    ENTER_MATCHMAKING = 0;
+    LEAVE_MATCHMAKING = 1;
+}
+
+enum Move { // Yapılan hame tipi
+    NONE = 0;
+    ROCK = 1;
+    PAPER = 2;
+    SCISSORS = 3;
+}
+
+enum RoundResult { // Bir turun sonucu ne? Bir Client'a WIN gittiyse turu o Client kazanmıştır
+    DRAW = 0;
+    WIN = 1;
+    LOSE = 2;
+}
+
+message MatchmakingPool {
+    string JWT = 1;                // Kullanıcı id'si burada
+    MatchmakingAction action = 2; // ENTER ise eşleştirme sistemine girer, LEAVE ise havuzdan çıkar
+}
+
+message MakeMove {
+    int32 round = 1; // Kaçıncı tur hamlesi?
+    Move  move = 2; // Hamle (NONE ise Rastgele bir tanesi seçilecek)
+}
+
+message Surrender {} // Maçtan düşerse veya teslim olursa
+
+message GameRequest {
+    oneof payload {
+        MatchmakingPool matchmaking = 1;
+        MakeMove move = 2;
+        Surrender surrender = 3;
+    }
+}
+
+service RPS {
+    rpc Game(stream GameRequest) returns (stream GameResponse);
+}
+
+message MatchFound {
+    string enemyName = 1;
+    int32 enemyElo = 2;
+    int64 matchStartsAt = 3; // UnixMilli(). milisaniyede maç balşlar
+}
+
+message GameOver {
+    RoundResult result = 1;
+    int32 eloChange = 2;
+}
+
+message RoundStart {
+    int32 round = 1;
+    int64 canMakePlayUntil = 2; // Client'ın bu turun hamlesini gönderebileceği en geç süre (UnixMilli)
+}
+
+message RoundOver {
+    int32 round = 1;
+    Move playerMove = 2;
+    Move enemyMove = 3;
+    RoundResult result = 4;
+    int64 nextRoundStartsAt = 5; // Tur UnixMilli(). milisaniyede başlayacak
+}
+
+message Error {
+    string error = 1;
+}
+
+message GameResponse {
+    oneof payload { 
+        MatchFound found = 1;
+        RoundStart start = 2;
+        RoundOver over = 3;
+        GameOver gameOver = 4;
+        Error error = 5;
+    }
+}
