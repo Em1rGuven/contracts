@@ -47,7 +47,7 @@ service RPS {
 message MatchFound {
     string enemyName = 1;
     int32 enemyElo = 2;
-    int64 matchStartsAt = 3; // UnixMilli(). milisaniyede maç balşlar
+    int64 matchStartsAt = 3; // UnixMilli(). milisaniyede maç başlar
 }
 
 message GameOver {
